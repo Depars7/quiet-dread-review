@@ -35,9 +35,11 @@ def main() -> None:
     line.encode("utf-8")
     os.umask(0o022)
     os.makedirs("/output", exist_ok=True)
-    # The collector reads outputs as a different user, so the folder
-    # itself must stay world-readable/traversable (0755), not just the file.
-    os.chmod("/output", 0o755)
+    # Do NOT chmod the /output directory itself: in the grader it is
+    # provided empty and writable but owned by another user, so chmod
+    # on it raises PermissionError for the unprivileged runner (65534)
+    # and the program exits 1 (run_completes). Only chmod the file
+    # this program creates, which the runner owns.
     with open(OUTPUT_PATH, "w", encoding="utf-8", newline="") as f:
         f.write(line)
     os.chmod(OUTPUT_PATH, 0o644)
